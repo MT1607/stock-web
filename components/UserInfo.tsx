@@ -1,31 +1,27 @@
 "use client";
-
 import { useSession, signIn, signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const UserInfo = () => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  if (status === 'loading') {
+    return <p>Loading...</p>;
+  }
+
+  if (status === 'authenticated') {
+    router.push('/dashboard');
+  }
+
   return (
     <div className="p-6 text-center">
-      {session ? (
-        <>
-          <h1 className="text-xl mb-4">Hello, {session.user?.name}</h1>
-          <p>{session.user?.email}</p>
-          <button
-            onClick={() => signOut()}
-            className="bg-red-500 text-white px-4 py-2 rounded"
-          >
-            Sign Out
-          </button>
-        </>
-      ) : (
         <button
           onClick={() => signIn("keycloak")}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
           Sign In with Keycloak
         </button>
-      )}
     </div>
   );
 }

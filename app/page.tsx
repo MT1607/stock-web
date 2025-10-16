@@ -3,8 +3,8 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <main style={{ padding: '20px' }}>
-      <h1>Welcome to the Next.js App with Keycloak Authentication</h1>
+    <main style={{ padding: '20px' }} className="flex items-center flex-col gap-5 justify-center h-screen">
+      <h1>Welcome to the Fake Stock App created by Next.js</h1>
       <Image
         src="/next.svg"
         alt="Next.js Logo"
