@@ -1,10 +1,14 @@
+import Header from '@/components/header';
+import SidebarComponent from '@/components/sidebar/sidebar-component';
+
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-white p-4 shadow">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-      </header>
-      <main className="p-4">{children}</main>
+    <div className="flex h-full w-full">
+      <SidebarComponent />
+      <div className="flex h-full flex-1 flex-col">
+        <Header />
+        <main className="flex-auto">{children}</main>
+      </div>
     </div>
   );
 };

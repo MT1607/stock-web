@@ -1,11 +1,12 @@
-import UserInfo from "@/components/UserInfo";
-import Image from "next/image";
+import UserInfo from '@/components/user-info';
+import Image from 'next/image';
 
 export default function Home() {
   return (
     <main
-      style={{ padding: "20px" }}
-      className="flex items-center flex-col gap-5 justify-center h-screen">
+      style={{ padding: '20px' }}
+      className="flex h-screen flex-col items-center justify-center gap-5"
+    >
       <h1>Welcome to the Fake Stock App created by Next.js</h1>
       <Image
         src="/next.svg"
