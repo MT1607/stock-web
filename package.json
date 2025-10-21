@@ -13,6 +13,7 @@
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-slot": "^1.2.3",
     "@supabase/supabase-js": "^2.75.1",
+    "@types/redis": "^4.0.10",
     "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -21,6 +22,8 @@
     "next-auth": "^4.24.11",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "redis": "^5.8.3",
+    "swr": "^2.3.6",
     "tailwind-merge": "^3.3.1",
     "zustand": "^5.0.8"
   },

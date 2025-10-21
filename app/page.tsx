@@ -1,5 +1,6 @@
 import UserInfo from '@/components/user-info';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -7,7 +8,7 @@ export default function Home() {
       style={{ padding: '20px' }}
       className="flex h-screen flex-col items-center justify-center gap-5"
     >
-      <h1>Welcome to the Fake Stock App created by Next.js</h1>
+      <h1>Welcome to the Stock App with Redis Caching</h1>
       <Image
         src="/next.svg"
         alt="Next.js Logo"
