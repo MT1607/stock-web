@@ -1,20 +1,18 @@
 'use client';
 import {
-  Banknote,
-  CheckCircle2,
+  BriefcaseBusiness,
+  ChartLine,
   ChevronsLeft,
   ChevronsRight,
-  LayoutDashboard,
-  ListCheck,
   LogOut,
-  Users,
+  Table2,
   Wrench,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import SidebarNav from './sidebar-nav';
-import { useSession, signOut } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import { useSidebarStore } from '@/store/sidebar-store';
 import Link from 'next/link';
 
@@ -22,34 +20,19 @@ const SidebarComponent = () => {
   const { isCollapse, toggleSidebar } = useSidebarStore();
   const navItem = [
     {
-      title: 'Dashboard',
-      href: '/dashboard',
-      icon: LayoutDashboard,
+      title: 'I-Board',
+      href: '/i-board',
+      icon: ChartLine,
     },
     {
-      title: 'Workspaces',
-      href: '/workspaces',
-      icon: Users,
+      title: 'Porfolio',
+      href: '/porfolio',
+      icon: Table2,
     },
     {
-      title: 'My task',
-      href: '/my-tasks',
-      icon: ListCheck,
-    },
-    {
-      title: 'Members',
-      href: '/members',
-      icon: Users,
-    },
-    {
-      title: 'Archived',
-      href: '/archived',
-      icon: CheckCircle2,
-    },
-    {
-      title: 'License',
-      href: '/license',
-      icon: Banknote,
+      title: 'Profile',
+      href: '/Profile',
+      icon: BriefcaseBusiness,
     },
   ];
   return (
@@ -60,12 +43,12 @@ const SidebarComponent = () => {
       )}
     >
       <div className={'mb-4 flex h-14 items-center border-b px-4'}>
-        <Link href={'/dashboard'} className={'flex items-center'}>
+        <Link href={'/i-board'} className={'flex items-center'}>
           {!isCollapse && (
             <div className={'flex items-center gap-2'}>
               <Wrench className={'size-6 text-blue-600'} />
               <span className={'hidden text-lg font-semibold md:block'}>
-                PrM
+                F-Stock
               </span>
             </div>
           )}
