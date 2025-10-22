@@ -18,10 +18,7 @@ api.interceptors.response.use(
   }
 );
 
-export const fetchData = async <T>(
-  path: string,
-  params?: Record<string, string>
-): Promise<T> => {
+export const fetchData = async <T>(path: string, params?: any): Promise<T> => {
   const response = await api.get(path, { params });
   return response.data;
 };

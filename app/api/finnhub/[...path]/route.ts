@@ -1,3 +1,7 @@
+declare global {
+  var cachedSymbols: any[] | undefined;
+}
+
 // src/app/api/finnhub/[...path]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
@@ -5,11 +9,6 @@ import axios from 'axios';
 const finnhubApiKey = process.env.NEXT_FINNHUB_API_KEY!;
 const finnhubBaseUrl =
   process.env.NEXT_FINNHUB_BASE_URL || 'https://finnhub.io/api/v1';
-
-// 👇 Thêm khai báo này ngay đầu file
-declare global {
-  var cachedSymbols: any[] | undefined;
-}
 
 export async function GET(
   req: NextRequest,
@@ -21,9 +20,7 @@ export async function GET(
   const url = `${finnhubBaseUrl}/${fullPath}${query}`;
 
   try {
-    // Nếu là API lấy danh sách symbol (dữ liệu lớn)
     if (fullPath === 'stock/symbol') {
-      // Cache để tránh gọi lại nhiều lần
       if (!globalThis.cachedSymbols) {
         const response = await axios.get(url, {
           headers: { 'X-Finnhub-Token': finnhubApiKey },
@@ -31,9 +28,23 @@ export async function GET(
         globalThis.cachedSymbols = response.data;
       }
 
-      const symbols = globalThis.cachedSymbols;
+      const searchParams = req.nextUrl.searchParams;
+      const limit = parseInt(searchParams.get('limit') || '20');
+      const page = parseInt(searchParams.get('page') || '1');
 
-      return NextResponse.json(symbols);
+      const dataJson = globalThis.cachedSymbols || [];
+
+      const startIndex = (page - 1) * limit;
+      const endIndex = page * limit;
+
+      const pagination = dataJson.slice(startIndex, endIndex);
+
+      return NextResponse.json({
+        data: pagination,
+        total: dataJson.length,
+        totalPages: Math.ceil(dataJson.length / limit),
+        currentPage: page,
+      });
     }
 
     // Với các API khác (chi tiết)
