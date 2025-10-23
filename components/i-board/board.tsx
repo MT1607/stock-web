@@ -8,7 +8,10 @@ import { columns } from './column-stock';
 
 export const BoardComponent = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const { paginatedData, isLoading, isError } = useGetStockUS(currentPage, 20);
+  const { paginatedData, isLoading, totalPages } = useGetStockUS(
+    currentPage,
+    20
+  );
 
   useEffect(() => {
     console.log('Board Component Mounted: ', paginatedData);
@@ -18,31 +21,49 @@ export const BoardComponent = () => {
     console.log('Get Detail Stock: ', data);
   };
 
+  const handlePageChange = (newPage: number) => {
+    let nextPageIndex = newPage;
+    if (newPage < 1) {
+      nextPageIndex = totalPages;
+    } else if (newPage > totalPages) {
+      nextPageIndex = 1;
+    }
+    setCurrentPage(nextPageIndex);
+  };
+
   return (
     <div>
-      {paginatedData ? (
-        <>
-          {/* {paginatedData.map((stock) => {
-            return (
-              <div key={stock.symbol} className="border-b p-2">
-                {stock.description} ({stock.symbol})
-              </div>
-            );
-          })} */}
-          <DataTable
-            columns={columns}
-            data={paginatedData}
-            onRowDoubleClick={handleGetDetailStock}
-          />
-        </>
-      ) : (
-        <p>Loading stocks...</p>
+      <>
+        <DataTable
+          columns={columns}
+          data={paginatedData ? paginatedData : []}
+          onRowDoubleClick={handleGetDetailStock}
+        />
+      </>
+
+      {!isLoading && (
+        <div className="mt-3 flex w-full justify-between">
+          <Button
+            variant={'ghost'}
+            onClick={() => handlePageChange(currentPage - 1)}
+          >
+            Prev
+          </Button>
+          {totalPages && (
+            <div className="flex items-center gap-2">
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
+            </div>
+          )}
+          <Button
+            variant={'ghost'}
+            onClick={() => handlePageChange(currentPage + 1)}
+          >
+            Next
+          </Button>
+        </div>
       )}
-      <div>
-        <Button onClick={() => setCurrentPage(currentPage - 1)}>Prev</Button>
-        {currentPage}
-        <Button onClick={() => setCurrentPage(currentPage + 1)}>Next</Button>
-      </div>
     </div>
   );
 };

@@ -16,6 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { on } from 'events';
+import { Skeleton } from './ui/skeleton';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -36,11 +37,11 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="overflow-hidden rounded-md border">
-      <Table>
+      <Table className="w-full table-fixed">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
+              {headerGroup.headers.map((header, index) => {
                 return (
                   <TableHead key={header.id}>
                     {header.isPlaceholder
@@ -75,11 +76,15 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ))
           ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
+            <>
+              {Array.from({ length: 20 }).map((_, index) => (
+                <TableRow className="h-full w-full" key={index}>
+                  <TableCell colSpan={columns.length}>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </>
           )}
         </TableBody>
       </Table>
