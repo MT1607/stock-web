@@ -5,6 +5,15 @@ import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { DataTable } from '../data-table';
 import { columns } from './column-stock';
+import { Input } from '../ui/input';
+import { useTableStore } from '@/store/table-store';
+import { Search, SearchIcon } from 'lucide-react';
+import {
+  InputGroup,
+  InputGroupInput,
+  InputGroupAddon,
+  InputGroupButton,
+} from '../ui/input-group';
 
 export const BoardComponent = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -12,9 +21,10 @@ export const BoardComponent = () => {
     currentPage,
     20
   );
+  const { globalFilter, setGlobalFilter } = useTableStore();
 
   useEffect(() => {
-    console.log('Board Component Mounted: ', paginatedData);
+    console.log('isLoading: ', isLoading);
   }, [paginatedData, isLoading]);
 
   const handleGetDetailStock = (data: any) => {
@@ -34,10 +44,21 @@ export const BoardComponent = () => {
   return (
     <div>
       <>
+        <InputGroup className="mb-3">
+          <InputGroupInput
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder="Search by symbol..."
+          />
+          <InputGroupAddon>
+            <SearchIcon />
+          </InputGroupAddon>
+        </InputGroup>
         <DataTable
           columns={columns}
           data={paginatedData ? paginatedData : []}
           onRowDoubleClick={handleGetDetailStock}
+          isLoadingData={isLoading}
         />
       </>
 

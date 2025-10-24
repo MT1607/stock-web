@@ -4,6 +4,7 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   useReactTable,
 } from '@tanstack/react-table';
 
@@ -15,12 +16,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { on } from 'events';
 import { Skeleton } from './ui/skeleton';
+import { useTableStore } from '@/store/table-store';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  isLoadingData: boolean;
   onRowDoubleClick?: (row: TData) => void;
 }
 
@@ -28,11 +30,17 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   onRowDoubleClick,
+  isLoadingData,
 }: DataTableProps<TData, TValue>) {
+  const globalFilter = useTableStore((state) => state.globalFilter);
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    state: { globalFilter },
+    onGlobalFilterChange: useTableStore.getState().setGlobalFilter,
+    getFilteredRowModel: getFilteredRowModel(),
   });
 
   return (
@@ -77,13 +85,28 @@ export function DataTable<TData, TValue>({
             ))
           ) : (
             <>
-              {Array.from({ length: 20 }).map((_, index) => (
-                <TableRow className="h-full w-full" key={index}>
-                  <TableCell colSpan={columns.length}>
-                    <Skeleton className="h-4 w-full" />
-                  </TableCell>
-                </TableRow>
-              ))}
+              {isLoadingData ? (
+                <>
+                  {Array.from({ length: 20 }).map((_, index) => (
+                    <TableRow className="h-full w-full" key={index}>
+                      <TableCell colSpan={columns.length}>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <TableRow className="h-full w-full">
+                    <TableCell
+                      colSpan={columns.length}
+                      className="w-full text-center"
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                </>
+              )}
             </>
           )}
         </TableBody>

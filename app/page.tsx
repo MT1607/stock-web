@@ -8,7 +8,7 @@ export default function Home() {
       style={{ padding: '20px' }}
       className="flex h-screen flex-col items-center justify-center gap-5"
     >
-      <h1>Welcome to the Stock App with Redis Caching</h1>
+      <h1>Welcome to the Stock App</h1>
       <Image
         src="/next.svg"
         alt="Next.js Logo"
