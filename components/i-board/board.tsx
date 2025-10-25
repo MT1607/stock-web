@@ -1,21 +1,28 @@
 'use client';
 
-import { useGetStockUS } from '@/hooks/use-finhub';
+import { useGetStockUS, useSearchStockUS } from '@/hooks/use-finhub';
 import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { DataTable } from '../data-table';
 import { columns } from './column-stock';
+import { useTableStore } from '@/store/table-store';
+import { Input } from '../ui/input';
 
 export const BoardComponent = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const { globalFilter, setGlobalFilter } = useTableStore();
+
   const { paginatedData, isLoading, totalPages } = useGetStockUS(
     currentPage,
     20
   );
 
+  const { searchData, isSearchLoading } = useSearchStockUS(globalFilter);
+
   useEffect(() => {
-    console.log('Board Component Mounted: ', paginatedData);
-  }, [paginatedData, isLoading]);
+    console.log('Search Data: ', searchData?.result);
+    setCurrentPage(1);
+  }, [globalFilter, searchData]);
 
   const handleGetDetailStock = (data: any) => {
     console.log('Get Detail Stock: ', data);
@@ -34,10 +41,16 @@ export const BoardComponent = () => {
   return (
     <div>
       <>
+        <Input
+          placeholder="search"
+          value={globalFilter || ''}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+        />
         <DataTable
           columns={columns}
-          data={paginatedData ? paginatedData : []}
+          data={searchData?.result || paginatedData}
           onRowDoubleClick={handleGetDetailStock}
+          isLoading={isLoading || isSearchLoading}
         />
       </>
 

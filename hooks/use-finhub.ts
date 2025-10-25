@@ -1,6 +1,6 @@
 'use client';
 import { fetchData } from '@/lib/feth-utils';
-import { Stock } from '@/types';
+import { SearchStock, Stock } from '@/types';
 import useSWR from 'swr';
 
 const useGetStockUS = (page = 1, limit = 20) => {
@@ -21,17 +21,15 @@ const useGetStockUS = (page = 1, limit = 20) => {
   };
 };
 
-const useSearchStocksUS = (query: string) => {
-  console.log('useSearchStocksUS query: ', query);
-  const { data, error, isLoading } = useSWR<{ data: Stock[] }>(
-    query ? [`search`, { q: query, exchange: 'US' }] : null,
+const useSearchStockUS = (query: string) => {
+  const { data, error, isLoading } = useSWR<SearchStock>(
+    [`search`, { q: query, exchange: 'US' }],
     ([url, params]) => fetchData(url, params)
   );
-
   return {
-    searchResults: data ? data.data : ([] as Stock[]),
-    isLoading,
-    isError: !!error,
+    searchData: data ? data : null,
+    isSearchLoading: isLoading,
+    isSearchError: !!error,
   };
 };
-export { useGetStockUS, useSearchStocksUS };
+export { useGetStockUS, useSearchStockUS };

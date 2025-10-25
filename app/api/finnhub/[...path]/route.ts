@@ -1,10 +1,19 @@
-declare global {
-  var cachedSymbols: any[] | undefined;
-}
-
-// src/app/api/finnhub/[...path]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+
+interface CachedResponse {
+  data: any;
+  timestamp: number;
+}
+declare global {
+  var finnhubCache: Map<string, CachedResponse> | undefined;
+}
+
+if (!globalThis.finnhubCache) {
+  globalThis.finnhubCache = new Map<string, CachedResponse>();
+}
+
+const CACHE_TTL_MS = 300000;
 
 const finnhubApiKey = process.env.NEXT_FINNHUB_API_KEY!;
 const finnhubBaseUrl =
@@ -12,27 +21,48 @@ const finnhubBaseUrl =
 
 export async function GET(
   req: NextRequest,
-  context: { params: Promise<{ path: string[] }> }
+  context: { params: { path: string[] } }
 ) {
   const { path } = await context.params;
   const fullPath = path.join('/');
   const query = req.nextUrl.search;
   const url = `${finnhubBaseUrl}/${fullPath}${query}`;
 
-  try {
-    if (fullPath === 'stock/symbol') {
-      if (!globalThis.cachedSymbols) {
-        const response = await axios.get(url, {
-          headers: { 'X-Finnhub-Token': finnhubApiKey },
-        });
-        globalThis.cachedSymbols = response.data;
-      }
+  const isPaginatedSymbolEndpoint = fullPath === 'stock/symbol';
 
+  const cacheKey = isPaginatedSymbolEndpoint ? fullPath : fullPath + query;
+
+  const cache = globalThis.finnhubCache;
+
+  try {
+    // === 2. KIỂM TRA CACHE ===
+    const cachedItem = cache?.get(cacheKey);
+    const now = Date.now();
+    let dataToUse: any;
+
+    if (cachedItem && now - cachedItem.timestamp < CACHE_TTL_MS) {
+      console.log(`[CACHE HIT] Using cached data for key: ${cacheKey}`);
+      dataToUse = cachedItem.data;
+    } else {
+      console.log(`[CACHE MISS] Fetching data for key: ${cacheKey}`);
+
+      const response = await axios.get(url, {
+        headers: { 'X-Finnhub-Token': finnhubApiKey },
+      });
+      dataToUse = response.data;
+
+      cache?.set(cacheKey, {
+        data: dataToUse,
+        timestamp: now,
+      });
+      console.log(`[CACHE STORED] Data cached for key: ${cacheKey}`);
+    }
+
+    if (isPaginatedSymbolEndpoint) {
       const searchParams = req.nextUrl.searchParams;
       const limit = parseInt(searchParams.get('limit') || '20');
       const page = parseInt(searchParams.get('page') || '1');
-
-      const dataJson = globalThis.cachedSymbols || [];
+      const dataJson = Array.isArray(dataToUse) ? dataToUse : [];
 
       const startIndex = (page - 1) * limit;
       const endIndex = page * limit;
@@ -47,13 +77,8 @@ export async function GET(
       });
     }
 
-    // Với các API khác (chi tiết)
-    const response = await axios.get(url, {
-      headers: { 'X-Finnhub-Token': finnhubApiKey },
-    });
-    return NextResponse.json(response.data);
+    return NextResponse.json(dataToUse);
   } catch (error: any) {
-    console.error('Finnhub API Error:', error.response?.data || error.message);
     return NextResponse.json(
       { error: 'Failed to fetch data from Finnhub' },
       { status: error.response?.status || 500 }

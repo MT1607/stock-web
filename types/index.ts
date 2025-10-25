@@ -10,3 +10,8 @@ export interface Stock {
   shareClassFIGI: string;
   symbol2: string | '';
 }
+
+export interface SearchStock {
+  count: number;
+  result: Stock[];
+}

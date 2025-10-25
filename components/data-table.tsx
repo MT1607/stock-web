@@ -21,18 +21,22 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   onRowDoubleClick?: (row: TData) => void;
+  isLoading?: boolean;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   onRowDoubleClick,
+  isLoading,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  console.log('DataTable data: ', data);
 
   return (
     <div className="overflow-hidden rounded-md border">
@@ -76,13 +80,23 @@ export function DataTable<TData, TValue>({
             ))
           ) : (
             <>
-              {Array.from({ length: 20 }).map((_, index) => (
-                <TableRow className="h-full w-full" key={index}>
-                  <TableCell colSpan={columns.length}>
-                    <Skeleton className="h-4 w-full" />
-                  </TableCell>
-                </TableRow>
-              ))}
+              {isLoading ? (
+                <>
+                  {Array.from({ length: 20 }).map((_, index) => (
+                    <TableRow className="h-full w-full" key={index}>
+                      <TableCell colSpan={columns.length}>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <TableRow className="h-full w-full">
+                    <TableCell colSpan={columns.length}>No results.</TableCell>
+                  </TableRow>
+                </>
+              )}
             </>
           )}
         </TableBody>
