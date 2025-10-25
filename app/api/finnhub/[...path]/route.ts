@@ -12,9 +12,9 @@ const finnhubBaseUrl =
 
 export async function GET(
   req: NextRequest,
-  params: { params: Promise<{ path: string[] }> }
+  context: { params: Promise<{ path: string[] }> }
 ) {
-  const { path } = await params.params;
+  const { path } = await context.params;
   const fullPath = path.join('/');
   const query = req.nextUrl.search;
   const url = `${finnhubBaseUrl}/${fullPath}${query}`;

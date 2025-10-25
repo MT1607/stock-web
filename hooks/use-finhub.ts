@@ -21,4 +21,17 @@ const useGetStockUS = (page = 1, limit = 20) => {
   };
 };
 
-export { useGetStockUS };
+const useSearchStocksUS = (query: string) => {
+  console.log('useSearchStocksUS query: ', query);
+  const { data, error, isLoading } = useSWR<{ data: Stock[] }>(
+    query ? [`search`, { q: query, exchange: 'US' }] : null,
+    ([url, params]) => fetchData(url, params)
+  );
+
+  return {
+    searchResults: data ? data.data : ([] as Stock[]),
+    isLoading,
+    isError: !!error,
+  };
+};
+export { useGetStockUS, useSearchStocksUS };
