@@ -7,6 +7,15 @@ import { DataTable } from '../data-table';
 import { columns } from './column-stock';
 import { useTableStore } from '@/store/table-store';
 import { Input } from '../ui/input';
+import useDebounce from '@/hooks/use-debounce';
+import { ColumnDef } from '@tanstack/react-table';
+import { Stock } from '@/types';
+import { Search } from 'lucide-react';
+import {
+  InputGroup,
+  InputGroupInput,
+  InputGroupAddon,
+} from '../ui/input-group';
 
 export const BoardComponent = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,12 +26,17 @@ export const BoardComponent = () => {
     20
   );
 
-  const { searchData, isSearchLoading } = useSearchStockUS(globalFilter);
+  const deboGlobalFilter = useDebounce(globalFilter, 200);
+  const searchQuery =
+    deboGlobalFilter.trim() !== '' ? deboGlobalFilter.trim() : null;
+
+  const { searchData, isSearchLoading } = useSearchStockUS(searchQuery);
 
   useEffect(() => {
-    console.log('Search Data: ', searchData?.result);
-    setCurrentPage(1);
-  }, [globalFilter, searchData]);
+    if (searchQuery) {
+      setCurrentPage(1);
+    }
+  }, [searchQuery, searchData]);
 
   const handleGetDetailStock = (data: any) => {
     console.log('Get Detail Stock: ', data);
@@ -40,19 +54,29 @@ export const BoardComponent = () => {
 
   return (
     <div>
-      <>
-        <Input
-          placeholder="search"
-          value={globalFilter || ''}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-        />
+      <div>
+        <InputGroup className="mb-4 w-full">
+          <InputGroupInput
+            placeholder="Search..."
+            value={globalFilter || ''}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+          />
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+          {searchData && (
+            <InputGroupAddon align="inline-end">
+              {searchData?.count} results
+            </InputGroupAddon>
+          )}
+        </InputGroup>{' '}
         <DataTable
-          columns={columns}
+          columns={columns as ColumnDef<Stock, any>[]}
           data={searchData?.result || paginatedData}
           onRowDoubleClick={handleGetDetailStock}
           isLoading={isLoading || isSearchLoading}
         />
-      </>
+      </div>
 
       {!isLoading && (
         <div className="mt-3 flex w-full justify-between">

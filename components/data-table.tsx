@@ -16,6 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from './ui/skeleton';
+import React from 'react';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -24,7 +25,7 @@ interface DataTableProps<TData, TValue> {
   isLoading?: boolean;
 }
 
-export function DataTable<TData, TValue>({
+function DataTableInner<TData, TValue>({
   columns,
   data,
   onRowDoubleClick,
@@ -104,3 +105,35 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
+
+const areEqual = <TData, TValue>(
+  prevProps: DataTableProps<TData, TValue>,
+  nextProps: DataTableProps<TData, TValue>
+): boolean => {
+  // 1. So sánh tham chiếu Data:
+  // Nếu tham chiếu data KHÔNG thay đổi, ta coi như component không cần render lại.
+  // Điều này xử lý trường hợp component cha render lại nhưng không fetch data mới.
+  if (prevProps.data !== nextProps.data) {
+    return false; // Tham chiếu data đã thay đổi -> CẦN render
+  }
+
+  // 2. So sánh tham chiếu Columns:
+  if (prevProps.columns !== nextProps.columns) {
+    return false; // Columns đã thay đổi -> CẦN render
+  }
+
+  if (prevProps.isLoading !== nextProps.isLoading) {
+    return false; // Trạng thái loading đã thay đổi -> CẦN render
+  }
+
+  if (prevProps.onRowDoubleClick !== nextProps.onRowDoubleClick) {
+    return false; // Hàm double click đã thay đổi -> CẦN render
+  }
+
+  return true;
+};
+
+export const DataTable = React.memo(
+  DataTableInner,
+  areEqual
+) as typeof DataTableInner;

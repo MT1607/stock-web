@@ -21,11 +21,17 @@ const useGetStockUS = (page = 1, limit = 20) => {
   };
 };
 
-const useSearchStockUS = (query: string) => {
-  const { data, error, isLoading } = useSWR<SearchStock>(
-    [`search`, { q: query, exchange: 'US' }],
-    ([url, params]) => fetchData(url, params)
+const useSearchStockUS = (query: string | null) => {
+  const swrKey = query ? [`search`, { q: query, exchange: 'US' }] : null;
+
+  const { data, error, isLoading } = useSWR<SearchStock, any, any>(
+    swrKey,
+    async (key: [`search`, { q: string; exchange: string }]) => {
+      const [url, params] = key;
+      return fetchData(url, params);
+    }
   );
+
   return {
     searchData: data ? data : null,
     isSearchLoading: isLoading,
