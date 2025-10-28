@@ -5,8 +5,6 @@ import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { DataTable } from '../data-table';
 import { columns } from './column-stock';
-import { useTableStore } from '@/store/table-store';
-import { Input } from '../ui/input';
 import useDebounce from '@/hooks/use-debounce';
 import { ColumnDef } from '@tanstack/react-table';
 import { Stock } from '@/types';
@@ -16,17 +14,21 @@ import {
   InputGroupInput,
   InputGroupAddon,
 } from '../ui/input-group';
+import StockDialog from './stock-dialog';
+import { useDialogStore } from '@/store/dialog-store';
 
 export const BoardComponent = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const { globalFilter, setGlobalFilter } = useTableStore();
+  const [selectedSymbol, setSelectedSymbol] = useState('');
+  const [localSymbol, setLocalSymbol] = useState('');
 
+  const { openDialog } = useDialogStore();
   const { paginatedData, isLoading, totalPages } = useGetStockUS(
     currentPage,
     20
   );
 
-  const deboGlobalFilter = useDebounce(globalFilter, 200);
+  const deboGlobalFilter = useDebounce(localSymbol, 300);
   const searchQuery =
     deboGlobalFilter.trim() !== '' ? deboGlobalFilter.trim() : null;
 
@@ -36,10 +38,15 @@ export const BoardComponent = () => {
     if (searchQuery) {
       setCurrentPage(1);
     }
-  }, [searchQuery, searchData]);
+  }, [searchData]);
+
+  useEffect(() => {
+    setLocalSymbol(deboGlobalFilter);
+  }, [deboGlobalFilter]);
 
   const handleGetDetailStock = (data: any) => {
-    console.log('Get Detail Stock: ', data);
+    openDialog();
+    setSelectedSymbol(data?.symbol);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -58,8 +65,7 @@ export const BoardComponent = () => {
         <InputGroup className="mb-4 w-full">
           <InputGroupInput
             placeholder="Search..."
-            value={globalFilter || ''}
-            onChange={(e) => setGlobalFilter(e.target.value)}
+            onChange={(e) => setLocalSymbol(e.target.value)}
           />
           <InputGroupAddon>
             <Search />
@@ -101,6 +107,8 @@ export const BoardComponent = () => {
           </Button>
         </div>
       )}
+
+      <StockDialog />
     </div>
   );
 };

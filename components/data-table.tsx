@@ -37,8 +37,6 @@ function DataTableInner<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
   });
 
-  console.log('DataTable data: ', data);
-
   return (
     <div className="overflow-hidden rounded-md border">
       <Table className="w-full table-fixed">
