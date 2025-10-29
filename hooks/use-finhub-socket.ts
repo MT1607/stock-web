@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export const useFinnhubSocket = (symbol: string) => {
-  const SOCKET_FINNHUB_KEY = 'd3qo5s1r01quv7kbohkgd3qo5s1r01quv7kbohl0';
-  const SOCKET_FINNHUB_URL = 'wss://ws.finnhub.io';
-  const socketUrl = `${SOCKET_FINNHUB_URL}?token=${SOCKET_FINNHUB_KEY}`;
-
-  console.log('socket url: ', socketUrl);
+  const socketUrl = 'ws://localhost:8080';
 
   const [trades, setTrades] = useState<any>([]);
   const [isConnect, setIsConnect] = useState(false);
@@ -14,17 +10,21 @@ export const useFinnhubSocket = (symbol: string) => {
   const MAX_TRADES = 20;
 
   //function to subscribe
-  const sendCommand = useCallback((type: string, s: string) => {
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify({ type: type, symbol: s }));
-      console.log(
-        `${type === 'subscribe' ? 'Subscribe' : 'Unsubscribe'} to : ${s}`
-      );
-    }
-  }, []);
+  const sendCommand = useCallback(
+    (type: 'subscribe' | 'unsubscribe', s: string) => {
+      if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+        ws.current.send(JSON.stringify({ event: type, data: { symbol: s } }));
+        console.log(
+          `${type === 'subscribe' ? 'Subscribe' : 'Unsubscribe'} to : ${s}`
+        );
+      }
+    },
+    []
+  );
 
   // set-up websocket
   useEffect(() => {
+    if (!symbol) return;
     ws.current = new WebSocket(socketUrl);
 
     ws.current.onopen = () => {
@@ -73,22 +73,7 @@ export const useFinnhubSocket = (symbol: string) => {
         ws.current.close();
       }
     };
-  }, [sendCommand]);
-
-  useEffect(() => {
-    if (!isConnect) return;
-    const previousSymbols = currentSymbolRef.current;
-
-    if (previousSymbols && previousSymbols !== symbol) {
-      sendCommand('unsubscribe', previousSymbols);
-    }
-
-    if (symbol) {
-      setTrades([]);
-      sendCommand('subscribe', symbol);
-      currentSymbolRef.current = symbol;
-    }
-  }, [symbol, isConnect, sendCommand]);
+  }, [symbol, sendCommand]);
 
   return { trades, isConnect, currentSymbol: currentSymbolRef.current };
 };

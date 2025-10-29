@@ -16,6 +16,7 @@ import {
 } from '../ui/input-group';
 import StockDialog from './stock-dialog';
 import { useDialogStore } from '@/store/dialog-store';
+import { useFinnhubSocket } from '@/hooks/use-finhub-socket';
 
 export const BoardComponent = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,12 +34,19 @@ export const BoardComponent = () => {
     deboGlobalFilter.trim() !== '' ? deboGlobalFilter.trim() : null;
 
   const { searchData, isSearchLoading } = useSearchStockUS(searchQuery);
+  const { trades, isConnect, currentSymbol } = useFinnhubSocket(selectedSymbol);
 
   useEffect(() => {
     if (searchQuery) {
       setCurrentPage(1);
     }
   }, [searchData]);
+
+  useEffect(() => {
+    console.log('trades: ', trades);
+    console.log('isCOnnect: ', isConnect);
+    console.log('currentSymbol: ', currentSymbol);
+  }, [trades]);
 
   useEffect(() => {
     setLocalSymbol(deboGlobalFilter);
