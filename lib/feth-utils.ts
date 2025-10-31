@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api/finnhub', // 🔥 Gọi đến route nội bộ của Next.js
+  baseURL: process.env.NEXT_PUBLIC_SERVER_URL, // 🔥 Gọi đến route nội bộ của Next.js
 });
 
 api.interceptors.request.use((config) => {

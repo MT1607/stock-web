@@ -5,15 +5,17 @@ import useSWR from 'swr';
 
 const useGetStockUS = (page = 1, limit = 20) => {
   const { data, error, isLoading } = useSWR<{
-    data: Stock[];
+    dataJson: Stock[];
     totalItems: number;
     totalPages: number;
-  }>([`stock/symbol`, { exchange: 'US', page, limit }], ([url, params]) =>
+  }>([`/stock`, { exchange: 'US', page, limit }], ([url, params]) =>
     fetchData(url, params)
   );
 
+  console.log('data list stock: ', data);
+
   return {
-    paginatedData: data ? data.data : ([] as Stock[]),
+    paginatedData: data ? data.dataJson : ([] as Stock[]),
     totalItems: data ? data.totalItems : 0,
     totalPages: data ? data.totalPages : 0,
     isLoading,
