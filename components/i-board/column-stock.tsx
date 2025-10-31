@@ -98,3 +98,5 @@ export const columns: ColumnDef<Stock>[] = [
     maxSize: 100,
   },
 ];
+
+export const columns_detail: ColumnDef<any>[] = [];

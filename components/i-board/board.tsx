@@ -44,7 +44,7 @@ export const BoardComponent = () => {
 
   useEffect(() => {
     console.log('trades: ', trades);
-    console.log('isCOnnect: ', isConnect);
+    console.log('isConnect: ', isConnect);
     console.log('currentSymbol: ', currentSymbol);
   }, [trades]);
 

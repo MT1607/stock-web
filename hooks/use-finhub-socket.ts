@@ -45,8 +45,8 @@ export const useFinnhubSocket = (symbol: string) => {
         setTrades((prevTrades: any) => {
           const newTrades = res.data.map((trade: any) => ({
             ...trade,
-            timestamp: new Date(trade.t).toLocaleTimeString(), // Định dạng thời gian
-            id: `${trade.t}-${Math.random()}`, // Key duy nhất
+            timestamp: new Date(trade.t).toLocaleTimeString(),
+            id: `${trade.t}-${Math.random()}`,
           }));
 
           console.log('trades: ', trades);
@@ -66,7 +66,6 @@ export const useFinnhubSocket = (symbol: string) => {
 
     return () => {
       if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-        // Hủy đăng ký mã cuối cùng trước khi đóng
         if (currentSymbolRef.current) {
           sendCommand('unsubscribe', currentSymbolRef.current);
         }
