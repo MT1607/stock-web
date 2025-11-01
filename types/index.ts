@@ -15,3 +15,9 @@ export interface SearchStock {
   count: number;
   result: Stock[];
 }
+
+export interface ResListStocks {
+  dataJson: Stock[];
+  totalItems: number;
+  totalPages: number;
+}

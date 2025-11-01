@@ -36,7 +36,9 @@ function DataTableInner<TData, TValue>({
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
-
+  if (!data) {
+    return <></>;
+  }
   return (
     <div className="overflow-hidden rounded-md border">
       <Table className="w-full table-fixed">
@@ -91,7 +93,7 @@ function DataTableInner<TData, TValue>({
                 </>
               ) : (
                 <>
-                  <TableRow className="h-full w-full">
+                  <TableRow className="h-full w-full text-center">
                     <TableCell colSpan={columns.length}>No results.</TableCell>
                   </TableRow>
                 </>
@@ -108,24 +110,19 @@ const areEqual = <TData, TValue>(
   prevProps: DataTableProps<TData, TValue>,
   nextProps: DataTableProps<TData, TValue>
 ): boolean => {
-  // 1. So sánh tham chiếu Data:
-  // Nếu tham chiếu data KHÔNG thay đổi, ta coi như component không cần render lại.
-  // Điều này xử lý trường hợp component cha render lại nhưng không fetch data mới.
   if (prevProps.data !== nextProps.data) {
-    return false; // Tham chiếu data đã thay đổi -> CẦN render
+    return false;
   }
-
-  // 2. So sánh tham chiếu Columns:
   if (prevProps.columns !== nextProps.columns) {
-    return false; // Columns đã thay đổi -> CẦN render
+    return false;
   }
 
   if (prevProps.isLoading !== nextProps.isLoading) {
-    return false; // Trạng thái loading đã thay đổi -> CẦN render
+    return false;
   }
 
   if (prevProps.onRowDoubleClick !== nextProps.onRowDoubleClick) {
-    return false; // Hàm double click đã thay đổi -> CẦN render
+    return false;
   }
 
   return true;

@@ -1,19 +1,14 @@
 'use client';
 import { fetchData } from '@/lib/feth-utils';
-import { SearchStock, Stock } from '@/types';
-import useSWR from 'swr';
+import { ResListStocks, SearchStock, Stock } from '@/types';
+import useSWR, { SWRConfiguration } from 'swr';
 
-const useGetStockUS = (page = 1, limit = 20) => {
-  const { data, error, isLoading } = useSWR<{
-    dataJson: Stock[];
-    totalItems: number;
-    totalPages: number;
-  }>([`/stock`, { exchange: 'US', page, limit }], ([url, params]) =>
-    fetchData(url, params)
+const useGetStockUS = (page = 1, limit = 20, options?: SWRConfiguration) => {
+  const { data, error, isLoading } = useSWR<ResListStocks>(
+    [`/stock`, { exchange: 'US', page, limit }],
+    ([url, params]) => fetchData(url, params),
+    options
   );
-
-  console.log('data list stock: ', data);
-
   return {
     paginatedData: data ? data.dataJson : ([] as Stock[]),
     totalItems: data ? data.totalItems : 0,

@@ -7,7 +7,7 @@ import { DataTable } from '../data-table';
 import { columns } from './column-stock';
 import useDebounce from '@/hooks/use-debounce';
 import { ColumnDef } from '@tanstack/react-table';
-import { Stock } from '@/types';
+import { ResListStocks, Stock } from '@/types';
 import { Search } from 'lucide-react';
 import {
   InputGroup,
@@ -18,7 +18,11 @@ import StockDialog from './stock-dialog';
 import { useDialogStore } from '@/store/dialog-store';
 import { useFinnhubSocket } from '@/hooks/use-finhub-socket';
 
-export const BoardComponent = () => {
+export const BoardComponent = ({
+  dataAllStocks,
+}: {
+  dataAllStocks: ResListStocks;
+}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSymbol, setSelectedSymbol] = useState('');
   const [localSymbol, setLocalSymbol] = useState('');
@@ -26,7 +30,10 @@ export const BoardComponent = () => {
   const { openDialog } = useDialogStore();
   const { paginatedData, isLoading, totalPages } = useGetStockUS(
     currentPage,
-    20
+    20,
+    {
+      fallbackData: currentPage === 1 ? dataAllStocks : [],
+    }
   );
 
   const deboGlobalFilter = useDebounce(localSymbol, 300);
@@ -88,10 +95,9 @@ export const BoardComponent = () => {
           columns={columns as ColumnDef<Stock, any>[]}
           data={searchData?.result || paginatedData}
           onRowDoubleClick={handleGetDetailStock}
-          isLoading={isLoading || isSearchLoading}
+          isLoading={isSearchLoading}
         />
       </div>
-
       {!isLoading && (
         <div className="mt-3 flex w-full justify-between">
           <Button
