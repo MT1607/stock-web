@@ -1,6 +1,10 @@
 'use client';
 
-import { useGetStockUS, useSearchStockUS } from '@/hooks/use-finhub';
+import {
+  useGetStockUS,
+  useQuoteStockUS,
+  useSearchStockUS,
+} from '@/hooks/use-finhub';
 import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { DataTable } from '../data-table';
@@ -42,6 +46,7 @@ export const BoardComponent = ({
 
   const { searchData, isSearchLoading } = useSearchStockUS(searchQuery);
   const { trades, isConnect, currentSymbol } = useFinnhubSocket(selectedSymbol);
+  const { quoteData } = useQuoteStockUS(selectedSymbol);
 
   useEffect(() => {
     if (searchQuery) {
@@ -62,6 +67,7 @@ export const BoardComponent = ({
   const handleGetDetailStock = (data: any) => {
     openDialog();
     setSelectedSymbol(data?.symbol);
+    console.log('quote', quoteData);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -122,7 +128,9 @@ export const BoardComponent = ({
         </div>
       )}
 
-      <StockDialog />
+      {quoteData && (
+        <StockDialog quoteData={quoteData} symbol={selectedSymbol} />
+      )}
     </div>
   );
 };

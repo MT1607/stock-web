@@ -21,3 +21,13 @@ export interface ResListStocks {
   totalItems: number;
   totalPages: number;
 }
+
+export interface QuoteStock {
+  c: number;
+  d: number;
+  dp: number;
+  h: number;
+  l: number;
+  o: number;
+  pc: number;
+}
