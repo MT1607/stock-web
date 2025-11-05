@@ -31,3 +31,12 @@ export interface QuoteStock {
   o: number;
   pc: number;
 }
+
+export interface MarketStatus {
+  exchange: string;
+  holiday: string | null;
+  isOpen: boolean;
+  session: 'pre-market' | 'regular' | 'post-market' | null;
+  t: Date;
+  timezone: string;
+}

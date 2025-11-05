@@ -1,7 +1,14 @@
 'use client';
 import { fetchData } from '@/lib/feth-utils';
-import { QuoteStock, ResListStocks, SearchStock, Stock } from '@/types';
+import {
+  MarketStatus,
+  QuoteStock,
+  ResListStocks,
+  SearchStock,
+  Stock,
+} from '@/types';
 import { ftruncate } from 'fs';
+import { url } from 'inspector';
 import useSWR, { SWRConfiguration } from 'swr';
 
 const useGetStockUS = (page = 1, limit = 20, options?: SWRConfiguration) => {
@@ -50,6 +57,16 @@ const useQuoteStockUS = (symbol: string | null) => {
 
   return {
     quoteData: data,
+    error,
+    isLoading,
   };
 };
-export { useGetStockUS, useSearchStockUS, useQuoteStockUS };
+
+const useGetStatusMarket = () => {
+  const { data, error, isLoading } = useSWR<MarketStatus>(
+    ['market-status', { exchange: 'US' }],
+    ([url, params]) => fetchData<MarketStatus>(url, params)
+  );
+  return { marketStatus: data, error, isLoading };
+};
+export { useGetStockUS, useSearchStockUS, useQuoteStockUS, useGetStatusMarket };

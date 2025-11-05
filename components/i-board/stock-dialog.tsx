@@ -8,9 +8,9 @@ import {
   DialogTitle,
 } from '../ui/dialog';
 import { QuoteStock } from '@/types';
-import { useEffect } from 'react';
-import { ChevronDown, ChevronUp, Quote } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Chart from '../chart';
 
 const StockDialog = ({
   quoteData,
@@ -67,7 +67,9 @@ const StockDialog = ({
                 </span>
               </div>
               <div className="grid w-full grid-cols-12 gap-x-2">
-                <div className="col-span-8 h-[200px] w-full bg-blue-500"></div>
+                <div className="col-span-8 h-[200px] flex-1 bg-blue-500">
+                  <Chart symbol={symbol} />
+                </div>
                 <div className="col-span-4 h-[200px] w-full bg-red-500"></div>
               </div>
             </>
