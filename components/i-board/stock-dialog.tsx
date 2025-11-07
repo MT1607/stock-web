@@ -9,7 +9,7 @@ import {
 } from '../ui/dialog';
 import { QuoteStock } from '@/types';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, getStatusPrice } from '@/lib/utils';
 import Chart from '../chart';
 
 const StockDialog = ({
@@ -34,11 +34,7 @@ const StockDialog = ({
                 <h1
                   className={cn(
                     'font-bold',
-                    quoteData.c > quoteData.pc
-                      ? 'text-green-500'
-                      : quoteData.c < quoteData.pc
-                        ? 'text-red-500'
-                        : 'text-yellow-500'
+                    getStatusPrice(quoteData.c, quoteData.pc)
                   )}
                 >
                   {symbol}
@@ -46,11 +42,7 @@ const StockDialog = ({
                 <span
                   className={cn(
                     'inline-flex items-center justify-center font-bold',
-                    quoteData.c > quoteData.pc
-                      ? 'text-green-500'
-                      : quoteData.c < quoteData.pc
-                        ? 'text-red-500'
-                        : 'text-yellow-500'
+                    getStatusPrice(quoteData.c, quoteData.pc)
                   )}
                 >
                   {quoteData.c.toFixed(2)}
@@ -66,8 +58,8 @@ const StockDialog = ({
                   {quoteData.dp.toFixed(2)}% ({quoteData.d.toFixed(2)})
                 </span>
               </div>
-              <div className="grid w-full grid-cols-12 gap-x-2">
-                <div className="col-span-8 h-[200px] flex-1 bg-blue-500">
+              <div className="grid grid-cols-12 gap-x-2">
+                <div className="col-span-8 h-full w-full flex-1">
                   <Chart symbol={symbol} />
                 </div>
                 <div className="col-span-4 h-[200px] w-full bg-red-500"></div>
