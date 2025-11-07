@@ -7,8 +7,6 @@ import {
   SearchStock,
   Stock,
 } from '@/types';
-import { ftruncate } from 'fs';
-import { url } from 'inspector';
 import useSWR, { SWRConfiguration } from 'swr';
 
 const useGetStockUS = (page = 1, limit = 20, options?: SWRConfiguration) => {
