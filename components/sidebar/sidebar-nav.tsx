@@ -1,6 +1,6 @@
 'use client';
 import { LucideIcon } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/store/sidebar-store';
@@ -15,6 +15,8 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
 
 const SidebarNav = ({ className, items, ...props }: SidebarNavProps) => {
   const location = usePathname();
+  const router = useRouter();
+
   const { isCollapse } = useSidebarStore();
 
   return (
@@ -30,6 +32,7 @@ const SidebarNav = ({ className, items, ...props }: SidebarNavProps) => {
               isActive && 'bg-blue-800/20 text-blue-600',
               'justify-start'
             )}
+            onClick={() => router.push(item.href)}
           >
             <Icon className={'mr-2 size-4'} />
             {isCollapse ? (

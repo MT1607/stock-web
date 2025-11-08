@@ -20,8 +20,8 @@ const SidebarComponent = () => {
   const { isCollapse, toggleSidebar } = useSidebarStore();
   const navItem = [
     {
-      title: 'I-Board',
-      href: '/i-board',
+      title: 'Stocks',
+      href: '/stocks',
       icon: ChartLine,
     },
     {

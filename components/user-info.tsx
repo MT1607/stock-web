@@ -10,7 +10,7 @@ const UserInfo = () => {
   console.log('Session data:', session);
   useEffect(() => {
     if (status === 'authenticated') {
-      router.push('/i-board');
+      router.push('/stocks');
     }
   }, [router, status]);
 
