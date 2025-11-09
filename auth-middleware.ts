@@ -10,11 +10,10 @@ export function handleAuthMiddleware(req: NextRequest) {
 
   if (!token && !pathname.startsWith('/auth')) {
     const loginUrl = new URL('/auth', req.url);
-    loginUrl.searchParams.set('callbackUrl', pathname); // quay lại sau khi login
+    loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // ✅ Đã login → nếu truy cập /auth thì quay về dashboard
   if (token && pathname.startsWith('/auth')) {
     return NextResponse.redirect(new URL('/stocks', req.url));
   }

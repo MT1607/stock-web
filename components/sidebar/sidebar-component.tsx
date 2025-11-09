@@ -43,7 +43,7 @@ const SidebarComponent = () => {
       )}
     >
       <div className={'mb-4 flex h-14 items-center border-b px-4'}>
-        <Link href={'/i-board'} className={'flex items-center'}>
+        <Link href={'/stocks'} className={'flex items-center'}>
           {!isCollapse && (
             <div className={'flex items-center gap-2'}>
               <Wrench className={'size-6 text-blue-600'} />

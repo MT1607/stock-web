@@ -1,9 +1,12 @@
-const IboardPage = async () => {
+import StockFollow from '@/components/stocks/stock-follow';
+
+const StocksPage = async () => {
   return (
-    <div className="p-2">
-      <h1 className="mb-4 text-2xl font-bold">I-Board</h1>
+    <div className="h-full w-full p-2">
+      <h1 className="mb-4 text-2xl font-bold">Stocks</h1>
+      <StockFollow />
     </div>
   );
 };
 
-export default IboardPage;
+export default StocksPage;
