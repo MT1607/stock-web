@@ -8,19 +8,29 @@ import {
   Stock,
 } from '@/types';
 import useSWR, { SWRConfiguration } from 'swr';
+import useSWRInfinite from 'swr/infinite';
+
+const getKey = (pageIndex: number, previousPageData: ResListStocks | null) => {
+  if (previousPageData && previousPageData.dataJson.length === 0) return null; // reached the end
+  return [`/stock`, { exchange: 'US', page: pageIndex + 1, limit: 20 }]; // SWR key
+};
 
 const useGetStockUS = (page = 1, limit = 20, options?: SWRConfiguration) => {
-  const { data, error, isLoading } = useSWR<ResListStocks>(
-    [`/stock`, { exchange: 'US', page, limit }],
-    ([url, params]) => fetchData(url, params),
-    options
-  );
+  const { data, error, isLoading, size, setSize } =
+    useSWRInfinite<ResListStocks>(
+      getKey,
+      ([url, params]) => fetchData<ResListStocks>(url, params),
+      options
+    );
+
   return {
-    paginatedData: data ? data.dataJson : ([] as Stock[]),
-    totalItems: data ? data.totalItems : 0,
-    totalPages: data ? data.totalPages : 0,
+    paginatedData: data ? data.flatMap((p) => p.dataJson) : ([] as Stock[]),
+    totalItems: data && data.length ? data[0].totalItems : 0,
+    totalPages: data && data.length ? data[0].totalPages : 0,
     isLoading,
     isError: !!error,
+    size,
+    setSize,
   };
 };
 
