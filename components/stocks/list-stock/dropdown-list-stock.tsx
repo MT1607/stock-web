@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/input-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useGetStockUS } from '@/hooks/use-finhub';
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Delete, Search } from 'lucide-react';
 import { useState } from 'react';
 
 const DropdownListStock = () => {
@@ -26,6 +26,7 @@ const DropdownListStock = () => {
     isError: er,
   } = useGetStockUS();
   const [search, setSearch] = useState('');
+  const [valueStockFollow, setValueStockFollow] = useState<string[]>([]);
 
   const filteredList = listStock.filter((stock) =>
     stock.symbol.toLowerCase().includes(search.toLowerCase())
@@ -33,17 +34,29 @@ const DropdownListStock = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <InputGroup>
-          <InputGroupInput
-            placeholder="Select your stock ..."
+      <InputGroup>
+        <InputGroupInput
+          placeholder="Select your stock ..."
+          value={valueStockFollow.join(', ')}
+          disabled
+        />
+        <InputGroupAddon
+          align={'inline-end'}
+          onClick={() => setValueStockFollow([])}
+          visible={valueStockFollow.length > 0}
+          className="cursor-pointer text-red-500"
+        >
+          <Delete />
+        </InputGroupAddon>
+        <DropdownMenuTrigger asChild>
+          <InputGroupAddon
+            align={'inline-end'}
             className="hover:cursor-pointer"
-          />
-          <InputGroupAddon align={'inline-end'}>
+          >
             <ChevronDown />
           </InputGroupAddon>
-        </InputGroup>
-      </DropdownMenuTrigger>
+        </DropdownMenuTrigger>
+      </InputGroup>
 
       <DropdownMenuContent
         className="flex h-[420px] w-full flex-col overflow-y-hidden p-2"
@@ -77,7 +90,12 @@ const DropdownListStock = () => {
                 key={stock.symbol}
                 onSelect={(e) => {
                   e.preventDefault();
-                  console.log('Selected stock:', stock.symbol);
+                  setValueStockFollow((prev) => {
+                    if (prev.includes(stock.symbol)) {
+                      return prev.filter((s) => s !== stock.symbol);
+                    }
+                    return [...prev, stock.symbol];
+                  });
                 }}
               >
                 {stock.symbol}

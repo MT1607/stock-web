@@ -45,6 +45,16 @@ const StockFollow = () => {
           <Separator />
           <DropdownListStock />
         </DialogContent>
+
+        {/* <InputGroup>
+          <InputGroupInput placeholder="Select your stock ..." />
+          <InputGroupAddon
+            align={'inline-end'}
+            className="hover:cursor-pointer"
+          >
+            <ChevronDown />
+          </InputGroupAddon>
+        </InputGroup> */}
       </Dialog>
     </div>
   );
