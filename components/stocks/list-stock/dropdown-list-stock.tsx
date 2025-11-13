@@ -13,11 +13,21 @@ import {
   InputGroupAddon,
 } from '@/components/ui/input-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useGetStockUS } from '@/hooks/use-finhub';
-import { ChevronDown, Delete, Search } from 'lucide-react';
-import { useState } from 'react';
+import useDebounce from '@/hooks/use-debounce';
+import { useGetStockUS, useSearchStockUS } from '@/hooks/use-finhub';
+import { Stock } from '@/types';
+import { ChevronDown, Delete, Search, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
-const DropdownListStock = () => {
+interface DropdownListStockProps {
+  valueStockFollow: string[];
+  setValueStockFollow: React.Dispatch<React.SetStateAction<string[]>>;
+}
+
+const DropdownListStock = ({
+  valueStockFollow,
+  setValueStockFollow,
+}: DropdownListStockProps) => {
   const {
     paginatedData: listStock,
     isLoading,
@@ -26,11 +36,57 @@ const DropdownListStock = () => {
     isError: er,
   } = useGetStockUS();
   const [search, setSearch] = useState('');
-  const [valueStockFollow, setValueStockFollow] = useState<string[]>([]);
+  const searchDebounced = useDebounce(search, 300);
 
-  const filteredList = listStock.filter((stock) =>
-    stock.symbol.toLowerCase().includes(search.toLowerCase())
-  );
+  const { searchData, isSearchLoading } = useSearchStockUS(searchDebounced);
+  const [highlightIndex, setHighlightIndex] = useState<number>(-1);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!listData.length) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightIndex((prev) => (prev + 1) % listData.length);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightIndex((prev) =>
+          prev <= 0 ? listData.length - 1 : prev - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (highlightIndex >= 0) {
+          const stock = listData[highlightIndex];
+          setValueStockFollow((prev) =>
+            prev.includes(stock.symbol)
+              ? prev.filter((s) => s !== stock.symbol)
+              : [...prev, stock.symbol]
+          );
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setSearch('');
+        setHighlightIndex(-1);
+        break;
+      case 'Backspace':
+        if (search === '') {
+          setHighlightIndex(-1);
+        }
+        break;
+      default:
+        break;
+    }
+  };
+
+  const listData = useMemo<Stock[]>(() => {
+    if (searchData?.result && searchData.result.length > 0) {
+      return searchData.result;
+    }
+    return listStock;
+  }, [searchData, listStock]);
 
   return (
     <DropdownMenu>
@@ -68,39 +124,61 @@ const DropdownListStock = () => {
             <InputGroupInput
               placeholder="Search ..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setHighlightIndex(-1);
+              }}
               onClick={(e) => e.stopPropagation()}
-              onKeyDown={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                e.stopPropagation();
+                handleKeyDown(e);
+              }}
             />
-            <InputGroupAddon align={'inline-end'}>
-              <Search />
+            <InputGroupAddon align="inline-end">
+              {search ? (
+                <X
+                  className="cursor-pointer"
+                  size={16}
+                  onClick={() => setSearch('')}
+                />
+              ) : (
+                <Search size={16} />
+              )}
             </InputGroupAddon>
           </InputGroup>
         </div>
 
         {/* Khu vực scroll cho danh sách */}
         <ScrollArea className="h-[320px] w-full flex-1">
-          {isLoading ? (
+          {isLoading || isSearchLoading ? (
             <div className="flex items-center justify-center py-4">
               <Loader />
             </div>
-          ) : filteredList.length > 0 ? (
-            filteredList.map((stock) => (
-              <DropdownMenuItem
-                key={stock.symbol}
-                onSelect={(e) => {
-                  e.preventDefault();
-                  setValueStockFollow((prev) => {
-                    if (prev.includes(stock.symbol)) {
-                      return prev.filter((s) => s !== stock.symbol);
-                    }
-                    return [...prev, stock.symbol];
-                  });
-                }}
-              >
-                {stock.symbol}
-              </DropdownMenuItem>
-            ))
+          ) : listData.length > 0 ? (
+            listData.map((stock, index) => {
+              const isSelected = valueStockFollow.includes(stock.symbol);
+              const isHighlighted = index === highlightIndex;
+              return (
+                <DropdownMenuItem
+                  key={stock.symbol}
+                  variant="highlight"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setValueStockFollow((prev) =>
+                      prev.includes(stock.symbol)
+                        ? prev.filter((s) => s !== stock.symbol)
+                        : [...prev, stock.symbol]
+                    );
+                  }}
+                  className={`flex justify-between ${
+                    isHighlighted ? 'text-accent-foreground !bg-blue-400' : ''
+                  }`}
+                >
+                  <span>{stock.symbol}</span>
+                  {isSelected && <span className="text-green-500">✓</span>}
+                </DropdownMenuItem>
+              );
+            })
           ) : (
             <div className="text-muted-foreground flex items-center justify-center py-4 text-sm">
               No result
