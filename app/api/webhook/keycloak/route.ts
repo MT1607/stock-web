@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-// Supabase client (Service Role Key)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { Pool } from 'pg'; // ⚠️ Đã thay đổi từ Client sang Pool
 
 // Keycloak userId is a string UUID
 interface KeycloakWebhookPayload {
   type: string;
   realmId: string;
   clientId: string;
-  userId: string; // <-- This is the Keycloak user ID (UUID)
+  userId: string;
   ipAddress: string;
   details: {
     username?: string;
@@ -24,7 +18,23 @@ interface KeycloakWebhookPayload {
   time: number;
 }
 
+// 🌐 POSTGRES CONNECTION POOL
+// Pool được tạo ra toàn cục (global) vì nó an toàn và hiệu quả hơn.
+// Mỗi request sẽ mượn một client từ pool.
+const pool = new Pool({
+  connectionString: process.env.NEXT_POSTGRES_URI!,
+  // Cấu hình tối ưu cho môi trường Serverless:
+  max: 20, // Số lượng kết nối tối đa trong pool
+  idleTimeoutMillis: 30000, // Đóng kết nối nhàn rỗi sau 30 giây
+  connectionTimeoutMillis: 2000, // Timeout khi cố gắng kết nối
+});
+
+// Bỏ qua client.connect() toàn cục. Pool sẽ tự quản lý kết nối.
+
 export async function POST(request: NextRequest) {
+  // 🔗 Khai báo client để dùng trong hàm, sau đó release
+  let dbClient;
+
   try {
     // 1️⃣ AUTH CHECK
     const authHeader = request.headers.get('authorization');
@@ -41,10 +51,10 @@ export async function POST(request: NextRequest) {
     );
     const [username, password] = credentials.split(':');
 
-    const expectedUsername = process.env.WEBHOOK_AUTH_USERNAME;
-    const expectedPassword = process.env.WEBHOOK_AUTH_PASSWORD;
-
-    if (username !== expectedUsername || password !== expectedPassword) {
+    if (
+      username !== process.env.WEBHOOK_AUTH_USERNAME ||
+      password !== process.env.WEBHOOK_AUTH_PASSWORD
+    ) {
       return NextResponse.json(
         { error: 'Unauthorized - Invalid credentials' },
         { status: 401 }
@@ -53,11 +63,7 @@ export async function POST(request: NextRequest) {
 
     // 2️⃣ PARSE PAYLOAD
     const payload: KeycloakWebhookPayload = await request.json();
-    console.log('🔔 Received Keycloak webhook:', {
-      type: payload.type,
-      keycloakUserId: payload.userId, // Renamed for clarity
-      email: payload.details.email,
-    });
+    console.log('🔔 Received Keycloak webhook:', payload);
 
     if (payload.type !== 'REGISTER') {
       return NextResponse.json({
@@ -66,7 +72,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Ensure we have the necessary data from Keycloak
     if (
       !payload.userId ||
       !payload.details.email ||
@@ -78,47 +83,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3️⃣ CHUẨN BỊ USER PROFILE
-    // We use Keycloak's 'userId' as the primary key 'id' in the 'profiles' table.
-    // This replaces the step of querying 'auth.users'.
-
-    console.log(
-      '🔄 Preparing user profile for upsert with Keycloak ID:',
-      payload
-    );
-
+    // 3️⃣ CHUẨN BỊ DỮ LIỆU
     const userProfile = {
-      keycloak_id: payload.userId, // <-- Use the Keycloak 'userId' directly
+      user_id: payload.userId,
       username: payload.details.username,
       first_name: payload.details.first_name || null,
       last_name: payload.details.last_name || null,
       email: payload.details.email,
-      // Add other fields as needed, e.g., 'keycloak_realm_id: payload.realmId'
     };
 
-    // 4️⃣ UPSERT VÀO profiles
-    const { data, error } = await supabase
-      .from('profiles')
-      .upsert(userProfile, {
-        onConflict: 'keycloak_id', // Conflict resolution on the Keycloak user ID
-        ignoreDuplicates: false,
-      })
-      .select();
+    console.log('🔄 Preparing UPSERT into PostgreSQL:', userProfile);
 
-    if (error) {
-      console.error('❌ Supabase insert error:', error);
-      return NextResponse.json(
-        { error: 'Failed to sync profile to Supabase', details: error.message },
-        { status: 500 }
-      );
-    }
+    // 4️⃣ UPSERT VÀO POSTGRES
+    // ⚠️ LẤY CLIENT TỪ POOL VÀ SỬ DỤNG NÓ
+    dbClient = await pool.connect();
 
-    console.log('✅ Profile synchronized successfully:', data);
+    const query = `
+      INSERT INTO users (
+        user_id, username, first_name, last_name, email
+      )
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (user_id)
+      DO UPDATE SET
+        username = EXCLUDED.username,
+        first_name = EXCLUDED.first_name,
+        last_name = EXCLUDED.last_name,
+        email = EXCLUDED.email
+      RETURNING *;
+    `;
+
+    const values = [
+      userProfile.user_id,
+      userProfile.username,
+      userProfile.first_name,
+      userProfile.last_name,
+      userProfile.email,
+    ];
+
+    const result = await dbClient.query(query, values); // Sử dụng dbClient
+
+    console.log('✅ Profile synchronized:', result.rows[0]);
 
     return NextResponse.json({
       success: true,
-      message: 'User profile synchronized to Supabase',
-      data,
+      message: 'User profile synchronized to PostgreSQL',
+      data: result.rows[0],
     });
   } catch (error) {
     console.error('🔥 Error processing webhook:', error);
@@ -129,10 +138,14 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     );
+  } finally {
+    // 🔑 QUAN TRỌNG: TRẢ CLIENT VỀ POOL, BẤT KỂ THÀNH CÔNG HAY THẤT BẠI
+    if (dbClient) {
+      dbClient.release();
+    }
   }
 }
 
-// Optional: Health check
 export async function GET() {
   return NextResponse.json({
     status: 'ok',
